@@ -1,26 +1,29 @@
 package service
 
 import (
+	"context"
+
 	"github.com/ARXXIII/f1-api/internal/model"
 	"github.com/ARXXIII/f1-api/internal/repository"
 )
 
 type DriverService interface {
-	GetDrivers() ([]model.Driver, error)
+	GetDrivers(ctx context.Context) ([]model.Driver, error)
+	GetDriverByID(ctx context.Context, id int) (*model.Driver, error)
 }
 
 type driverService struct {
 	repo repository.DriverRepository
 }
 
-func NewDriverService(repo repository.DriverRepository) DriverService {
-	return &driverService{repo: repo}
+func NewDriverService(r repository.DriverRepository) DriverService {
+	return &driverService{repo: r}
 }
 
-func (s *driverService) GetDrivers() ([]model.Driver, error) {
-	drivers, err := s.repo.GetAllDrivers()
-	if err != nil {
-		return nil, err
-	}
-	return drivers, nil
+func (s *driverService) GetDrivers(ctx context.Context) ([]model.Driver, error) {
+	return s.repo.GetAll(ctx)
+}
+
+func (s *driverService) GetDriverByID(ctx context.Context, id int) (*model.Driver, error) {
+	return s.repo.GetByID(ctx, id)
 }
