@@ -1,58 +1,47 @@
 package repository
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
+	"context"
 
 	"github.com/ARXXIII/f1-api/internal/model"
+	"github.com/ARXXIII/f1-api/pkg/db"
 )
 
 type DriverRepository interface {
-	GetAllDrivers() ([]model.Driver, error)
+	GetAll(ctx context.Context) ([]model.Driver, error)
+	GetByID(ctx context.Context, id int) (*model.Driver, error)
 }
 
-type driverRepository struct {
-	supabaseURL string
-	apiKey      string
+type driverRepo struct{}
+
+func NewDriverRepository() DriverRepository {
+	return &driverRepo{}
 }
 
-func NewDriverRepository(supabaseURL, apiKey string) DriverRepository {
-	return &driverRepository{supabaseURL: supabaseURL, apiKey: apiKey}
-}
-
-func (r *driverRepository) GetAllDrivers() ([]model.Driver, error) {
-	url := fmt.Sprintf("%s/driver", r.supabaseURL)
-
-	req, err := http.NewRequest("GET", url, nil)
+func (r *driverRepo) GetAll(ctx context.Context) ([]model.Driver, error) {
+	rows, err := db.Conn.Query(ctx, `SELECT id, first_name, last_name, team, number FROM drivers`)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Add("apikey", r.apiKey)
-	req.Header.Add("Authorization", "Bearer "+r.apiKey)
-	req.Header.Add("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("bad status: %s, body: %s", resp.Status, string(body))
-	}
+	defer rows.Close()
 
 	var drivers []model.Driver
-	if err := json.Unmarshal(body, &drivers); err != nil {
+	for rows.Next() {
+		var d model.Driver
+		if err := rows.Scan(&d.ID, &d.FirstName, &d.LastName, &d.Team, &d.Number); err != nil {
+			return nil, err
+		}
+		drivers = append(drivers, d)
+	}
+	return drivers, nil
+}
+
+func (r *driverRepo) GetByID(ctx context.Context, id int) (*model.Driver, error) {
+	row := db.Conn.QueryRow(ctx, `SELECT id, first_name, last_name, team, number FROM drivers WHERE id=$1`, id)
+
+	var d model.Driver
+	if err := row.Scan(&d.ID, &d.FirstName, &d.LastName, &d.Team, &d.Number); err != nil {
 		return nil, err
 	}
-
-	return drivers, nil
+	return &d, nil
 }
