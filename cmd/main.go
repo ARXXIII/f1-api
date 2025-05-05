@@ -24,15 +24,28 @@ func main() {
 	// log.Println("Postgres version:", version)
 
 	driverRepo := repository.NewDriverRepository()
-	driverService := service.NewDriverService(driverRepo)
-	driverHandler := handler.NewDriverHandler(ctx, driverService)
+	teamRepo := repository.NewTeamRepository()
 
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("OK"))
-	})
+	driverService := service.NewDriverService(driverRepo)
+	teamService := service.NewTeamService(teamRepo)
+
+	driverHandler := handler.NewDriverHandler(ctx, driverService)
+	teamHandler := handler.NewTeamHandler(ctx, teamService)
+
+	http.HandleFunc("/health", healthCheck)
 	http.HandleFunc("/driver", driverHandler.GetDrivers)
 	http.HandleFunc("/driver/", driverHandler.GetDriverByID)
+	http.HandleFunc("/team", teamHandler.GetTeams)
+	http.HandleFunc("/team/", teamHandler.GetTeamByID)
 
-	log.Println("Server is running on http://localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("Server is running on http://localhost:8080/health")
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func healthCheck(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }
