@@ -17,11 +17,11 @@ func InitDB(ctx context.Context) {
 		log.Println("No .env file found, using system environment variables")
 	}
 
-	user := os.Getenv("user")
-	password := os.Getenv("password")
-	host := os.Getenv("host")
-	port := os.Getenv("port")
-	dbname := os.Getenv("dbname")
+	user := os.Getenv("POSGRES_USER")
+	password := os.Getenv("POSGRES_PASSWORD")
+	host := os.Getenv("POSGRES_HOST")
+	port := os.Getenv("POSGRES_PORT")
+	dbname := os.Getenv("POSGRES_DBNAME")
 
 	if user == "" || password == "" || host == "" || port == "" || dbname == "" {
 		log.Fatal("One or more required database connection parameters are missing")
