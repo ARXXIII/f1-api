@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/ARXXIII/f1-api/internal/handler"
 	"github.com/ARXXIII/f1-api/internal/repository"
@@ -16,12 +17,6 @@ func main() {
 
 	db.InitDB(ctx)
 	defer db.Conn.Close(ctx)
-
-	// var version string
-	// if err := db.Conn.QueryRow(ctx, "SELECT version()").Scan(&version); err != nil {
-	// 	log.Fatalf("Query failed: %v", err)
-	// }
-	// log.Println("Postgres version:", version)
 
 	driverRepo := repository.NewDriverRepository()
 	teamRepo := repository.NewTeamRepository()
@@ -38,10 +33,11 @@ func main() {
 	http.HandleFunc("/team", teamHandler.GetTeams)
 	http.HandleFunc("/team/", teamHandler.GetTeamByID)
 
-	log.Println("Server is running on http://localhost:8080/health")
-	err := http.ListenAndServe(":8080", nil)
+	port := os.Getenv("PORT")
+	log.Printf("Server is running on http://localhost:%s/health", port)
+	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to start server: %v", err)
 	}
 }
 
