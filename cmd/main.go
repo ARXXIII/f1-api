@@ -28,9 +28,9 @@ func main() {
 	teamHandler := handler.NewTeamHandler(ctx, teamService)
 
 	http.HandleFunc("/health", healthCheck)
-	http.HandleFunc("/driver", driverHandler.GetDrivers)
+	http.HandleFunc("/driver", driverHandler.GetDriver)
 	http.HandleFunc("/driver/", driverHandler.GetDriverByID)
-	http.HandleFunc("/team", teamHandler.GetTeams)
+	http.HandleFunc("/team", teamHandler.GetTeam)
 	http.HandleFunc("/team/", teamHandler.GetTeamByID)
 
 	port := os.Getenv("PORT")
