@@ -9,7 +9,10 @@ import (
 )
 
 type DriverService interface {
-	GetDrivers(ctx context.Context) ([]model.Driver, error)
+	GetDriver(ctx context.Context, page int) ([]model.Driver, error)
+	GetDriverByName(ctx context.Context, name string, page int) ([]model.Driver, error)
+	GetDriverByTeam(ctx context.Context, team string, page int) ([]model.Driver, error)
+	GetDriverByStatus(ctx context.Context, status string, page int) ([]model.Driver, error)
 	GetDriverByID(ctx context.Context, id uuid.UUID) (*model.Driver, error)
 }
 
@@ -21,8 +24,20 @@ func NewDriverService(r repository.DriverRepository) DriverService {
 	return &driverService{repo: r}
 }
 
-func (s *driverService) GetDrivers(ctx context.Context) ([]model.Driver, error) {
-	return s.repo.GetAll(ctx)
+func (s *driverService) GetDriver(ctx context.Context, page int) ([]model.Driver, error) {
+	return s.repo.GetAll(ctx, page)
+}
+
+func (s *driverService) GetDriverByName(ctx context.Context, name string, page int) ([]model.Driver, error) {
+	return s.repo.GetByName(ctx, name, page)
+}
+
+func (s *driverService) GetDriverByTeam(ctx context.Context, team string, page int) ([]model.Driver, error) {
+	return s.repo.GetByTeam(ctx, team, page)
+}
+
+func (s *driverService) GetDriverByStatus(ctx context.Context, status string, page int) ([]model.Driver, error) {
+	return s.repo.GetByStatus(ctx, status, page)
 }
 
 func (s *driverService) GetDriverByID(ctx context.Context, id uuid.UUID) (*model.Driver, error) {
