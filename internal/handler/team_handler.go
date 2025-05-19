@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/ARXXIII/f1-api/internal/service"
+	"github.com/ARXXIII/f1-api/internal/utils"
 	"github.com/google/uuid"
 )
 
@@ -23,16 +24,20 @@ func NewTeamHandler(ctx context.Context, s service.TeamService) *TeamHandler {
 	}
 }
 
-func (h *TeamHandler) GetTeams(w http.ResponseWriter, r *http.Request) {
-	teams, err := h.service.GetTeams(h.ctx)
-	if err != nil {
-		http.Error(w, "Failed to fetch teams", http.StatusInternalServerError)
-		log.Printf("Error fetching teams: %v", err)
-		return
-	}
+func (h *TeamHandler) GetTeam(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	page := utils.ParsePage(query.Get("page"))
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(teams)
+	switch {
+	case query.Has("name"):
+		h.getByName(w, query.Get("name"), page)
+	case query.Has("engine"):
+		h.getByEngine(w, query.Get("engine"), page)
+	case query.Has("chassis"):
+		h.getByChassis(w, query.Get("chassis"), page)
+	default:
+		h.getAll(w, page)
+	}
 }
 
 func (h *TeamHandler) GetTeamByID(w http.ResponseWriter, r *http.Request) {
@@ -50,13 +55,64 @@ func (h *TeamHandler) GetTeamByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.getByID(w, id)
+}
+
+// ------------------------
+// Приватные методы
+// ------------------------
+
+func (h *TeamHandler) getAll(w http.ResponseWriter, page int) {
+	teams, err := h.service.GetTeam(h.ctx, page)
+	if err != nil {
+		http.Error(w, "Failed to fetch teams", http.StatusInternalServerError)
+		log.Printf("GetAll error: %v", err)
+		return
+	}
+	h.respond(w, teams)
+}
+
+func (h *TeamHandler) getByName(w http.ResponseWriter, name string, page int) {
+	team, err := h.service.GetTeamByName(h.ctx, name, page)
+	if err != nil {
+		http.Error(w, "Failed to fetch teams by name", http.StatusInternalServerError)
+		log.Printf("GetByName error: %v", err)
+		return
+	}
+	h.respond(w, team)
+}
+
+func (h *TeamHandler) getByEngine(w http.ResponseWriter, engine string, page int) {
+	teams, err := h.service.GetTeamByEngine(h.ctx, engine, page)
+	if err != nil {
+		http.Error(w, "Failed to fetch teams by engine", http.StatusInternalServerError)
+		log.Printf("GetByName error: %v", err)
+		return
+	}
+	h.respond(w, teams)
+}
+
+func (h *TeamHandler) getByChassis(w http.ResponseWriter, chassis string, page int) {
+	teams, err := h.service.GetTeamByChassis(h.ctx, chassis, page)
+	if err != nil {
+		http.Error(w, "Failed to fetch teams by chassis", http.StatusInternalServerError)
+		log.Printf("GetByName error: %v", err)
+		return
+	}
+	h.respond(w, teams)
+}
+
+func (h *TeamHandler) getByID(w http.ResponseWriter, id uuid.UUID) {
 	team, err := h.service.GetTeamByID(h.ctx, id)
 	if err != nil {
 		http.Error(w, "Team not found", http.StatusNotFound)
-		log.Printf("Error: Team not found: %v", err)
+		log.Printf("GetByID error: %v", err)
 		return
 	}
+	h.respond(w, team)
+}
 
+func (h *TeamHandler) respond(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(team)
+	json.NewEncoder(w).Encode(data)
 }
