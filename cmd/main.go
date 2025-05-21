@@ -19,25 +19,25 @@ func main() {
 	defer db.Conn.Close(ctx)
 
 	driverRepo := repository.NewDriverRepository()
-	teamRepo := repository.NewTeamRepository()
+	constructorRepo := repository.NewConstructorRepository()
 
 	driverService := service.NewDriverService(driverRepo)
-	teamService := service.NewTeamService(teamRepo)
+	constructorService := service.NewConstructorService(constructorRepo)
 
 	driverHandler := handler.NewDriverHandler(ctx, driverService)
-	teamHandler := handler.NewTeamHandler(ctx, teamService)
+	constructorHandler := handler.NewConstructorHandler(ctx, constructorService)
 
 	http.HandleFunc("/health", healthCheck)
 	http.HandleFunc("/driver", driverHandler.GetDriver)
 	http.HandleFunc("/driver/", driverHandler.GetDriverByID)
-	http.HandleFunc("/team", teamHandler.GetTeam)
-	http.HandleFunc("/team/", teamHandler.GetTeamByID)
+	http.HandleFunc("/constructor", constructorHandler.GetConstructor)
+	http.HandleFunc("/constructor/", constructorHandler.GetConstructorByID)
 
 	port := os.Getenv("PORT")
 	log.Printf("Server is running on http://localhost:%s/health", port)
 	err := http.ListenAndServe(":"+port, nil)
 	if err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+		log.Fatalf("Failed to start: %v", err)
 	}
 }
 
