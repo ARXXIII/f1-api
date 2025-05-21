@@ -22,7 +22,7 @@ To run the project locally, use the provided `Makefile`. Follow these steps:
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/f1-api.git
+    git clone https://github.com/ARXXIII/f1-api.git
     cd f1-api
     ```
 
