@@ -11,8 +11,8 @@ import (
 type DriverService interface {
 	GetDriver(ctx context.Context, page int) ([]model.Driver, error)
 	GetDriverByName(ctx context.Context, name string, page int) ([]model.Driver, error)
-	GetDriverByTeam(ctx context.Context, team string, page int) ([]model.Driver, error)
 	GetDriverByStatus(ctx context.Context, status string, page int) ([]model.Driver, error)
+	GetDriverByNationality(ctx context.Context, nationality string, page int) ([]model.Driver, error)
 	GetDriverByID(ctx context.Context, id uuid.UUID) (*model.Driver, error)
 }
 
@@ -32,12 +32,12 @@ func (s *driverService) GetDriverByName(ctx context.Context, name string, page i
 	return s.repo.GetByName(ctx, name, page)
 }
 
-func (s *driverService) GetDriverByTeam(ctx context.Context, team string, page int) ([]model.Driver, error) {
-	return s.repo.GetByTeam(ctx, team, page)
-}
-
 func (s *driverService) GetDriverByStatus(ctx context.Context, status string, page int) ([]model.Driver, error) {
 	return s.repo.GetByStatus(ctx, status, page)
+}
+
+func (s *driverService) GetDriverByNationality(ctx context.Context, nationality string, page int) ([]model.Driver, error) {
+	return s.repo.GetByNationality(ctx, nationality, page)
 }
 
 func (s *driverService) GetDriverByID(ctx context.Context, id uuid.UUID) (*model.Driver, error) {
