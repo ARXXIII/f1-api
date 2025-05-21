@@ -13,8 +13,8 @@ import (
 type DriverRepository interface {
 	GetAll(ctx context.Context, page int) ([]model.Driver, error)
 	GetByName(ctx context.Context, name string, page int) ([]model.Driver, error)
-	GetByTeam(ctx context.Context, team string, page int) ([]model.Driver, error)
 	GetByStatus(ctx context.Context, status string, page int) ([]model.Driver, error)
+	GetByNationality(ctx context.Context, nationality string, page int) ([]model.Driver, error)
 	GetByID(ctx context.Context, id uuid.UUID) (*model.Driver, error)
 }
 
@@ -26,7 +26,7 @@ func NewDriverRepository() DriverRepository {
 
 func (r *driverRepo) GetAll(ctx context.Context, page int) ([]model.Driver, error) {
 	offset := (page - 1) * utils.DEFAULT_PAGE_SIZE
-	query := `SELECT id, first_name, last_name, date_of_birth, place_of_birth, number, debut, team, status FROM drivers ORDER BY id LIMIT $1 OFFSET $2`
+	query := `SELECT id, ref, code, number, first_name, last_name, date_of_birth, nationality, status, url FROM drivers ORDER BY id LIMIT $1 OFFSET $2`
 	rows, err := db.Conn.Query(ctx, query, utils.DEFAULT_PAGE_SIZE, offset)
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func (r *driverRepo) GetAll(ctx context.Context, page int) ([]model.Driver, erro
 
 func (r *driverRepo) GetByName(ctx context.Context, name string, page int) ([]model.Driver, error) {
 	offset := (page - 1) * utils.DEFAULT_PAGE_SIZE
-	query := `SELECT id, first_name, last_name, date_of_birth, place_of_birth, number, debut, team, status 
+	query := `SELECT id, ref, code, number, first_name, last_name, date_of_birth, nationality, status, url
 	          FROM drivers 
 	          WHERE LOWER(first_name) LIKE LOWER($1) OR LOWER(last_name) LIKE LOWER($1)
 	          ORDER BY last_name
@@ -52,14 +52,14 @@ func (r *driverRepo) GetByName(ctx context.Context, name string, page int) ([]mo
 	return scanDriver(rows)
 }
 
-func (r *driverRepo) GetByTeam(ctx context.Context, team string, page int) ([]model.Driver, error) {
+func (r *driverRepo) GetByStatus(ctx context.Context, status string, page int) ([]model.Driver, error) {
 	offset := (page - 1) * utils.DEFAULT_PAGE_SIZE
-	query := `SELECT id, first_name, last_name, date_of_birth, place_of_birth, number, debut, team, status 
+	query := `SELECT id, ref, code, number, first_name, last_name, date_of_birth, nationality, status, url 
 	          FROM drivers 
-	          WHERE LOWER(team) = LOWER($1)
+	          WHERE LOWER(status) = LOWER($1)
 	          ORDER BY last_name
 	          LIMIT $2 OFFSET $3`
-	rows, err := db.Conn.Query(ctx, query, team, utils.DEFAULT_PAGE_SIZE, offset)
+	rows, err := db.Conn.Query(ctx, query, status, utils.DEFAULT_PAGE_SIZE, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -68,14 +68,14 @@ func (r *driverRepo) GetByTeam(ctx context.Context, team string, page int) ([]mo
 	return scanDriver(rows)
 }
 
-func (r *driverRepo) GetByStatus(ctx context.Context, status string, page int) ([]model.Driver, error) {
+func (r *driverRepo) GetByNationality(ctx context.Context, nationality string, page int) ([]model.Driver, error) {
 	offset := (page - 1) * utils.DEFAULT_PAGE_SIZE
-	query := `SELECT id, first_name, last_name, date_of_birth, place_of_birth, number, debut, team, status 
+	query := `SELECT id, ref, code, number, first_name, last_name, date_of_birth, nationality, status, url 
 	          FROM drivers 
-	          WHERE LOWER(status) = LOWER($1)
+	          WHERE LOWER(nationality) = LOWER($1)
 	          ORDER BY last_name
 	          LIMIT $2 OFFSET $3`
-	rows, err := db.Conn.Query(ctx, query, status, utils.DEFAULT_PAGE_SIZE, offset)
+	rows, err := db.Conn.Query(ctx, query, nationality, utils.DEFAULT_PAGE_SIZE, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -90,14 +90,15 @@ func scanDriver(rows pgx.Rows) ([]model.Driver, error) {
 		var d model.Driver
 		if err := rows.Scan(
 			&d.ID,
+			&d.Ref,
+			&d.Code,
+			&d.Number,
 			&d.FirstName,
 			&d.LastName,
 			&d.DateOfBirth,
-			&d.PlaceOfBirth,
-			&d.Number,
-			&d.Debut,
-			&d.Team,
+			&d.Nationality,
 			&d.Status,
+			&d.URL,
 		); err != nil {
 			return nil, err
 		}
@@ -107,19 +108,20 @@ func scanDriver(rows pgx.Rows) ([]model.Driver, error) {
 }
 
 func (r *driverRepo) GetByID(ctx context.Context, id uuid.UUID) (*model.Driver, error) {
-	row := db.Conn.QueryRow(ctx, `SELECT id, first_name, last_name, date_of_birth, place_of_birth, number, debut, team, status FROM drivers WHERE id = $1`, id)
+	row := db.Conn.QueryRow(ctx, `SELECT id, ref, code, number, first_name, last_name, date_of_birth, nationality, status, url FROM drivers WHERE id = $1`, id)
 
 	var d model.Driver
 	if err := row.Scan(
 		&d.ID,
+		&d.Ref,
+		&d.Code,
+		&d.Number,
 		&d.FirstName,
 		&d.LastName,
 		&d.DateOfBirth,
-		&d.PlaceOfBirth,
-		&d.Number,
-		&d.Debut,
-		&d.Team,
+		&d.Nationality,
 		&d.Status,
+		&d.URL,
 	); err != nil {
 		return nil, err
 	}
