@@ -31,8 +31,8 @@ func (h *DriverHandler) GetDriver(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case query.Has("name"):
 		h.getByName(w, query.Get("name"), page)
-	case query.Has("team"):
-		h.getByTeam(w, query.Get("team"), page)
+	case query.Has("nationality"):
+		h.getByNationality(w, query.Get("nationality"), page)
 	case query.Has("status"):
 		h.getByStatus(w, query.Get("status"), page)
 	default:
@@ -59,7 +59,7 @@ func (h *DriverHandler) GetDriverByID(w http.ResponseWriter, r *http.Request) {
 }
 
 // ------------------------
-// Приватные методы
+// Private methods
 // ------------------------
 
 func (h *DriverHandler) getAll(w http.ResponseWriter, page int) {
@@ -82,11 +82,11 @@ func (h *DriverHandler) getByName(w http.ResponseWriter, name string, page int) 
 	h.respond(w, drivers)
 }
 
-func (h *DriverHandler) getByTeam(w http.ResponseWriter, team string, page int) {
-	drivers, err := h.service.GetDriverByTeam(h.ctx, team, page)
+func (h *DriverHandler) getByNationality(w http.ResponseWriter, nationality string, page int) {
+	drivers, err := h.service.GetDriverByNationality(h.ctx, nationality, page)
 	if err != nil {
-		http.Error(w, "Failed to fetch drivers by team", http.StatusInternalServerError)
-		log.Printf("GetByTeam error: %v", err)
+		http.Error(w, "Failed to fetch drivers by nationality", http.StatusInternalServerError)
+		log.Printf("GetByNationality error: %v", err)
 		return
 	}
 	h.respond(w, drivers)
