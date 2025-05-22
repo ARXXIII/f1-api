@@ -19,17 +19,22 @@ func main() {
 	defer db.Conn.Close(ctx)
 
 	driverRepo := repository.NewDriverRepository()
+	circuitRepo := repository.NewCircuitRepository()
 	constructorRepo := repository.NewConstructorRepository()
 
 	driverService := service.NewDriverService(driverRepo)
+	circuitService := service.NewCircuitService(circuitRepo)
 	constructorService := service.NewConstructorService(constructorRepo)
 
 	driverHandler := handler.NewDriverHandler(ctx, driverService)
+	circuitHandler := handler.NewCircuitHandler(ctx, circuitService)
 	constructorHandler := handler.NewConstructorHandler(ctx, constructorService)
 
 	http.HandleFunc("/health", healthCheck)
 	http.HandleFunc("/driver", driverHandler.GetDriver)
 	http.HandleFunc("/driver/", driverHandler.GetDriverByID)
+	http.HandleFunc("/circuit", circuitHandler.GetCircuit)
+	http.HandleFunc("/circuit/", circuitHandler.GetCircuitByID)
 	http.HandleFunc("/constructor", constructorHandler.GetConstructor)
 	http.HandleFunc("/constructor/", constructorHandler.GetConstructorByID)
 
